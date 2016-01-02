@@ -59,7 +59,7 @@ namespace Fody
                 NuGetPackageRoot = NuGetPackageRoot
             };
             var success = processor.Execute();
-            if (success && processor.Weavers != null)
+            if (success)
             {
                 var weavers = processor.Weavers.Select(x => x.AssemblyName);
                 ExecutedWeavers = string.Join(";", weavers) + ";";

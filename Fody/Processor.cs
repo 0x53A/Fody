@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
 using MSMessageEnum = Microsoft.Build.Framework.MessageImportance;
 
 public partial class Processor
@@ -81,16 +80,13 @@ public partial class Processor
             return;
         }
 
-		if (IsFodyExplicitlyDisabled())
-			return;
-
         ValidateSolutionPath();
 
         FindWeavers();
 
         if (Weavers.Count == 0)
         {
-            Logger.LogError("No configured weavers. It is possible you have not installed a weaver or have installed a fody weaver nuget into a project type that does not support install.ps1. You may need to add that weaver to FodyWeavers.xml manually. eg. <Weavers><WeaverName/></Weavers>. see https://github.com/Fody/Fody/wiki/SampleUsage\nIf you want to supress this error, add 'CompletelyDisableFody=\"True\" to <Weavers>.");
+            Logger.LogError("No configured weavers. It is possible you have not installed a weaver or have installed a fody weaver nuget into a project type that does not support install.ps1. You may need to add that weaver to FodyWeavers.xml manually. eg. <Weavers><WeaverName/></Weavers>. see https://github.com/Fody/Fody/wiki/SampleUsage");
             return;
         }
         lock (locker)
@@ -101,29 +97,8 @@ public partial class Processor
         FlushWeaversXmlHistory();
     }
 
-	private bool IsFodyExplicitlyDisabled()
-	{
-		foreach (var configFile in this.ConfigFiles)
-		{
-			var configXml = XDocument.Load(configFile);
-			var element = configXml.Root;
-			var attribute = element.Attribute("CompletelyDisableFody");
-			if (attribute != null)
-			{
-				bool completelyDisableFody;
-				if (false == bool.TryParse(attribute.Value, out completelyDisableFody))
-				{
-					Logger.LogError($"Attribute 'CompletelyDisableFody' on {element.Name} could not be parsed. Value: {attribute.Value}");
-					return true;
-				}
-				Logger.LogMessage("All post-processing is disabled because 'CompletelyDisableFody' was set to true in FodyWeavers.xml", MessageImportance.High);
-				return completelyDisableFody;
-			}
-		}
-		return false;
-	}
 
-	void FindWeavers()
+    void FindWeavers()
     {
         var stopwatch = Stopwatch.StartNew();
         Logger.LogDebug("Finding weavers");
